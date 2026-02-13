@@ -1,37 +1,97 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>AR Viewer</title>
-  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AR Viewer Diagnostic</title>
+
+  <!-- Pin a version (more reliable than floating latest) -->
+  <script type="module" src="https://unpkg.com/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>
+
   <style>
-    body {
-      margin: 0;
-      background: #111;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-    model-viewer {
-      width: 100%;
-      height: 100%;
-    }
+    body { margin:0; font-family: Arial, sans-serif; background:#0b0b0b; color:#fff; }
+    .top { padding:12px 14px; border-bottom:1px solid #222; }
+    .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .pill { padding:6px 10px; border:1px solid #333; border-radius:999px; font-size:12px; color:#ddd; }
+    .ok { border-color:#2c6; color:#9f9; }
+    .bad { border-color:#f55; color:#fbb; }
+    model-viewer { width:100%; height: calc(100vh - 72px); background:#111; }
+    a { color:#9ad; }
+    code { color:#ddd; }
   </style>
 </head>
+
 <body>
+  <div class="top">
+    <div class="row">
+      <div class="pill" id="mvStatus">model-viewer: checking…</div>
+      <div class="pill" id="modelStatus">model: checking…</div>
+      <div class="pill" id="arStatus">AR: checking…</div>
+    </div>
+    <div style="margin-top:8px; font-size:12px;">
+      Model URL: <code id="modelUrl"></code>
+      &nbsp;|&nbsp; Raw test: <a id="rawLink" href="#" target="_blank" rel="noopener">open</a>
+    </div>
+  </div>
 
-<model-viewer 
-  src="ChickenClean.glb"
-  alt="AR Model"
-  ar
-  ar-modes="scene-viewer webxr quick-look"
-  camera-controls
-  auto-rotate
-  shadow-intensity="1"
-  exposure="1"
->
-</model-viewer>
+  <model-viewer id="viewer"
+    src=""
+    alt="AR Model"
+    camera-controls
+    ar
+    ar-modes="scene-viewer webxr quick-look"
+    shadow-intensity="1"
+    exposure="1">
+  </model-viewer>
 
+  <script>
+    // ✅ CHANGE THIS to your actual file path:
+    // If model is in same folder: "dish1.glb"
+    // If in /models folder: "models/dish1.glb"
+    const MODEL_SRC = "ChickenClean.glb";
+
+    const mvStatus = document.getElementById("mvStatus");
+    const modelStatus = document.getElementById("modelStatus");
+    const arStatus = document.getElementById("arStatus");
+    const viewer = document.getElementById("viewer");
+
+    // Show the fully-resolved URL for debugging
+    const resolved = new URL(MODEL_SRC, window.location.href).toString();
+    document.getElementById("modelUrl").textContent = resolved;
+    const rawLink = document.getElementById("rawLink");
+    rawLink.href = resolved;
+
+    // Is model-viewer defined?
+    if (customElements.get("model-viewer")) {
+      mvStatus.textContent = "model-viewer: loaded";
+      mvStatus.classList.add("ok");
+    } else {
+      mvStatus.textContent = "model-viewer: NOT loaded (CDN blocked?)";
+      mvStatus.classList.add("bad");
+    }
+
+    // Set model src and check if it fetches (HEAD)
+    viewer.src = MODEL_SRC;
+
+    fetch(resolved, { method: "HEAD" })
+      .then(r => {
+        if (r.ok) {
+          modelStatus.textContent = "model: found (HTTP " + r.status + ")";
+          modelStatus.classList.add("ok");
+        } else {
+          modelStatus.textContent = "model: NOT found (HTTP " + r.status + ")";
+          modelStatus.classList.add("bad");
+        }
+      })
+      .catch(() => {
+        modelStatus.textContent = "model: fetch failed (DNS/HTTPS/CORS)";
+        modelStatus.classList.add("bad");
+      });
+
+    // Basic AR availability hint (not perfect, but useful)
+    const isAndroid = /Android/i.test(navigator.userAgent);
+    arStatus.textContent = isAndroid ? "AR: Android (Scene Viewer expected)" : "AR: non-Android (may vary)";
+    arStatus.classList.add("ok");
+  </script>
 </body>
 </html>
