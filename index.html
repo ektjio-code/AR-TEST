@@ -4,10 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>AR Viewer Diagnostic</title>
-
   <!-- Pin a version (more reliable than floating latest) -->
   <script type="module" src="https://unpkg.com/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>
-
   <style>
     body { margin:0; font-family: Arial, sans-serif; background:#0b0b0b; color:#fff; }
     .top { padding:12px 14px; border-bottom:1px solid #222; }
@@ -20,7 +18,6 @@
     code { color:#ddd; }
   </style>
 </head>
-
 <body>
   <div class="top">
     <div class="row">
@@ -33,9 +30,9 @@
       &nbsp;|&nbsp; Raw test: <a id="rawLink" href="#" target="_blank" rel="noopener">open</a>
     </div>
   </div>
-
   <model-viewer id="viewer"
     src=""
+    ios-src="Knoose5.usdz"
     alt="AR Model"
     camera-controls
     ar
@@ -43,24 +40,18 @@
     shadow-intensity="1"
     exposure="1">
   </model-viewer>
-
   <script>
-    // ✅ CHANGE THIS to your actual file path:
-    // If model is in same folder: "dish1.glb"
-    // If in /models folder: "models/dish1.glb"
-    const MODEL_SRC = "ChickenClean.glb";
-
+    // ✅ Model file name — Android uses .glb, iOS uses .usdz (set via ios-src attribute)
+    const MODEL_SRC = "Knoose5.glb";
     const mvStatus = document.getElementById("mvStatus");
     const modelStatus = document.getElementById("modelStatus");
     const arStatus = document.getElementById("arStatus");
     const viewer = document.getElementById("viewer");
-
     // Show the fully-resolved URL for debugging
     const resolved = new URL(MODEL_SRC, window.location.href).toString();
     document.getElementById("modelUrl").textContent = resolved;
     const rawLink = document.getElementById("rawLink");
     rawLink.href = resolved;
-
     // Is model-viewer defined?
     if (customElements.get("model-viewer")) {
       mvStatus.textContent = "model-viewer: loaded";
@@ -69,10 +60,8 @@
       mvStatus.textContent = "model-viewer: NOT loaded (CDN blocked?)";
       mvStatus.classList.add("bad");
     }
-
     // Set model src and check if it fetches (HEAD)
     viewer.src = MODEL_SRC;
-
     fetch(resolved, { method: "HEAD" })
       .then(r => {
         if (r.ok) {
@@ -87,10 +76,10 @@
         modelStatus.textContent = "model: fetch failed (DNS/HTTPS/CORS)";
         modelStatus.classList.add("bad");
       });
-
-    // Basic AR availability hint (not perfect, but useful)
+    // Basic AR availability hint
     const isAndroid = /Android/i.test(navigator.userAgent);
-    arStatus.textContent = isAndroid ? "AR: Android (Scene Viewer expected)" : "AR: non-Android (may vary)";
+    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    arStatus.textContent = isAndroid ? "AR: Android (Scene Viewer → .glb)" : isIOS ? "AR: iOS (Quick Look → .usdz)" : "AR: Desktop (preview only)";
     arStatus.classList.add("ok");
   </script>
 </body>
