@@ -13,7 +13,7 @@
 
     model-viewer {
       width: 100%;
-      height: calc(100% - 40px);
+      height: 100%;
       background: #e8e8e8;
       --poster-color: #e8e8e8;
     }
@@ -23,21 +23,11 @@
       right: 50%;
       transform: translateX(50%);
     }
-
-    #debug {
-      height: 40px;
-      padding: 8px 12px;
-      font: 12px monospace;
-      color: #333;
-      background: #ddd;
-      overflow-x: auto;
-      white-space: nowrap;
-    }
   </style>
 </head>
 <body>
 
-  <model-viewer id="mv"
+  <model-viewer
     src="knoose5.glb"
     ios-src="knoose5.usdz"
     alt="3D Model"
@@ -51,32 +41,6 @@
     auto-rotate
     autoplay
   ></model-viewer>
-
-  <div id="debug">Loading...</div>
-
-  <script type="module">
-    const mv = document.getElementById('mv');
-    const d = document.getElementById('debug');
-
-    mv.addEventListener('load', () => {
-      const dim = mv.getDimensions();
-      d.textContent = '✅ Model loaded | Size: ' + dim.x.toFixed(2) + ' x ' + dim.y.toFixed(2) + ' x ' + dim.z.toFixed(2);
-    });
-
-    mv.addEventListener('error', (e) => {
-      d.textContent = '❌ Error: ' + (e.detail || e.message || 'unknown');
-    });
-
-    mv.addEventListener('ar-status', (e) => {
-      d.textContent += ' | AR: ' + e.detail.status;
-    });
-
-    setTimeout(() => {
-      if (d.textContent === 'Loading...') {
-        d.textContent = '⏳ Still loading... check file paths';
-      }
-    }, 10000);
-  </script>
 
 </body>
 </html>
